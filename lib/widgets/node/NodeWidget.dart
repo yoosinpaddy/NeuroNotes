@@ -1,61 +1,91 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 
 import 'NodePainter.dart';
+import 'dart:math' as Math;
 
-class NodeWidget extends StatefulWidget {
-  final IconData menuIconData;
-  final IconData plusIconData;
+class NodeWidget extends StatelessWidget {
   final bool hasChild;
+  final Widget? child;
 
-  NodeWidget({ this.menuIconData = Icons.menu,  this.plusIconData = Icons.add, this.hasChild = false});
-
-  @override
-  _NodeWidgetState createState() => _NodeWidgetState();
-}
-
-class _NodeWidgetState extends State<NodeWidget> {
-  ui.Image? menuIcon;
-  ui.Image? plusIcon;
-
-  @override
-  void initState() {
-    super.initState();
-    loadIcons();
-  }
-
-  Future<void> loadIcons() async {
-    menuIcon = await iconToImage(widget.menuIconData);
-    plusIcon = await iconToImage(widget.plusIconData);
-    setState(() {});
-  }
+  NodeWidget({required this.hasChild, this.child});
 
   @override
   Widget build(BuildContext context) {
-    if (menuIcon == null || plusIcon == null) {
-      return Container(); // Return an empty container while the icons are loading.
-    }
+    double width = Math.min(MediaQuery.sizeOf(context).width, 100);
+    double height = Math.min(MediaQuery.sizeOf(context).height, 100);
+    double rightPadding = ((width/2.0) - Math.sqrt(2 * Math.pow(width/2, 2)) / 2) - 4;
+    double verticalPadding = ((height/2.0)  - Math.sqrt(2 * Math.pow(height/2, 2)) / 2) - 4;
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        CustomPaint(
+          painter: NodePainter(hasChild: hasChild),
+          child: SizedBox(
+            width: 120,
+            height: 120,
+            child: Stack(
+              children: [
+                Center(
+                  child: Container(
+                    width: width,
+                    height: height,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: rightPadding,
+                  bottom: verticalPadding,
+                  child: GestureDetector(
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.red,
+                        border: Border.all(color: Colors.white, width: 1),
 
-    return CustomPaint(
-      painter: NodePainter(menuIcon: menuIcon!, plusIcon: plusIcon!, hasChild: widget.hasChild),
-      size: Size(100, 100), // You can adjust the size as needed.
+                      ),
+                      child: Icon(Icons.menu, size: 15, color: Colors.white),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: rightPadding,
+                  top: verticalPadding,
+                  child: GestureDetector(
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.green,
+                        border: Border.all(color: Colors.white, width: 1),
+                      ),
+                      child: Icon(Icons.add, size: 15, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (hasChild && child != null)
+          Positioned(
+            bottom: -60,
+            child: Column(
+              children: [
+                CustomPaint(
+                  size: const Size(2, 50),
+                  painter: LinePainter(),
+                ),
+                child!,
+              ],
+            ),
+          ),
+      ],
     );
   }
-}
-
-Future<ui.Image> iconToImage(IconData iconData, {double size = 100.0, Color color = Colors.black}) async {
-  final pictureRecorder = ui.PictureRecorder();
-  final canvas = Canvas(pictureRecorder);
-  final paint = Paint()..color = color;
-  final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-  textPainter.text = TextSpan(text: String.fromCharCode(iconData.codePoint), style: TextStyle(fontSize: size, fontFamily: iconData.fontFamily, color: color));
-  textPainter.layout();
-  textPainter.paint(canvas, Offset.zero);
-
-  final picture = pictureRecorder.endRecording();
-  final image = await picture.toImage(size.toInt(), size.toInt());
-
-  return image;
 }

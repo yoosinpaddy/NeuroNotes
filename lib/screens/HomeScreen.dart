@@ -15,7 +15,12 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 300,
       width: 300,
       alignment: Alignment.center,
-      child: NodeWidget(),
+      color: Colors.green,
+      child: SizedBox(
+        width: 200,
+        height: 200,
+        child: NodeWidget(hasChild: true),
+      )
     );
   }
 }
